@@ -36,7 +36,7 @@ EMAIL_TO = [email.strip() for email in os.getenv("EMAIL_TO", "").split(",") if e
 PAPERS_DIR = Path("./papers")
 CONCLUSION_FILE = Path("./conclusion.md")
 CATEGORIES = ["cs.RO","cs.CV","cs.AI"]
-MAX_PAPERS = 50  # 设置为1以便快速测试
+MAX_PAPERS = 10  # 设置为1以便快速测试
 
 # 配置OpenAI API用于DeepSeek
 openai.api_key = DEEPSEEK_API_KEY
@@ -119,7 +119,7 @@ def analyze_paper_with_deepseek(pdf_path, paper):
         
         logger.info(f"正在分析论文: {paper.title}")
         response = openai.ChatCompletion.create(
-            model="deepseek-chat",
+            model="deepseek-v4-pro",
             messages=[
                 {"role": "system", "content": "你是一位专门总结和分析学术论文的研究助手。请使用中文回复。"},
                 {"role": "user", "content": prompt},
