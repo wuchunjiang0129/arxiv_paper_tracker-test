@@ -35,12 +35,12 @@ EMAIL_TO = [email.strip() for email in os.getenv("EMAIL_TO", "").split(",") if e
 
 PAPERS_DIR = Path("./papers")
 CONCLUSION_FILE = Path("./conclusion.md")
-CATEGORIES = ["cs.AR", "cs.AI"]
+CATEGORIES = ["cs.RO","cs.CV","cs.AI"]
 MAX_PAPERS = 50  # 设置为1以便快速测试
 
 # 配置OpenAI API用于DeepSeek
 openai.api_key = DEEPSEEK_API_KEY
-openai.api_base = "https://api.deepseek.com/v1"
+openai.api_base = "https://api.deepseek.com/v4"
 
 # 如果不存在论文目录则创建
 PAPERS_DIR.mkdir(exist_ok=True)
