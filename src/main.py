@@ -63,7 +63,12 @@ def get_recent_papers(categories, max_results=MAX_PAPERS):
     query = f"({category_query}) AND {date_range}"
     
     logger.info(f"正在搜索论文，查询条件: {query}")
-    
+
+    client = arxiv.Client(
+        page_size=100,
+        delay_seconds=5.0,  # 每次请求之间延迟 5 秒（默认是 3 秒）
+        num_retries=5       # 增加重试次数
+    )
     # 搜索ArXiv
     search = arxiv.Search(
         query=query,
@@ -72,7 +77,7 @@ def get_recent_papers(categories, max_results=MAX_PAPERS):
         sort_order=arxiv.SortOrder.Descending
     )
     
-    results = list(search.results())
+    results = list(client.results(search))
     logger.info(f"找到{len(results)}篇符合条件的论文")
     return results
 
