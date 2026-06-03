@@ -2,22 +2,20 @@
 # ArXiv论文追踪与分析器
 
 import os
-import arxiv
 import datetime
-from pathlib import Path
-import openai
 import time
 import logging
 import sys
 import smtplib
+import re           # 新增：用于解析 RSS 里的冗余 HTML 标签
+import json         # 新增：用于处理 DeepSeek API 的原生 JSON 数据
+import requests     # 新增：用于原生直连 DeepSeek 服务器
+import feedparser   # 新增：用于绕过 ArXiv 限制的 RSS 解析库
+from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from jinja2 import Template
-import feedparser
-import re
-import requests
-import json
 
 # 加载环境变量
 load_dotenv()
