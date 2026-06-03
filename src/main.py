@@ -27,19 +27,56 @@ PAPERS_DIR = Path("./papers")
 PAPERS_DIR.mkdir(exist_ok=True)
 
 # === 🎯 狙击目标配置 ===
-TARGET_QUERIES = [{"cat": "cs.CV", "conf": "CVPR"}, {"cat": "cs.AI", "conf": "NeurIPS"}]
-MAX_PAPERS = 3  # 每次精读篇数
+# TARGET_QUERIES = [{"cat": "cs.CV", "conf": "CVPR"}, {"cat": "cs.AI", "conf": "NeurIPS"}]
+TARGET_QUERIES = [
+    {
+        "cat": "cs.CV",                               # 领域：计算机视觉
+        "confs": ["CVPR", "ICCV", "ECCV"],            # 视觉三大顶会打包
+        "keywords": ["visual navigation", "(UAV OR drone OR quadrotor)"]      # 必须同时包含：视觉导航 AND 无人机
+    },
+    {
+        "cat": "cs.RO",                               # 领域：机器人学
+        "confs": ["ICRA", "IROS", "RSS"],             # 机器人三大顶会打包
+        "keywords": ["visual navigation", "(UAV OR drone OR quadrotor)"]    # 必须同时包含：视觉导航 AND 无人机(drone)
+    }
+]
+MAX_PAPERS = 5  # 每次精读篇数
 
 def get_target_conference_papers():
+    """精确检索包含【多个顶会标签】及特定关键词的最新论文"""
     all_papers = []
+    
     for target in TARGET_QUERIES:
-        cat, conf = target["cat"], target["conf"]
-        logger.info(f"正在狙击 {cat} 领域中带有 {conf} 标签的论文...")
-        encoded_query = urllib.parse.quote(f"cat:{cat} AND co:{conf}")
+        cat = target["cat"]
+        confs = target.get("confs", [])
+        keywords = target.get("keywords", [])
+        
+        logger.info(f"正在狙击 {cat} 领域 -> 会议群 {confs} -> 关键词: {keywords}")
+        
+        # 1. 基础条件：分类 AND (会议A OR 会议B OR 会议C)
+        if confs:
+            conf_query = " OR ".join([f"co:{c}" for c in confs])
+            raw_query = f"cat:{cat} AND ({conf_query})"
+        else:
+            raw_query = f"cat:{cat}"
+        
+        # 2. 附加条件：如果有关键词，拼接到查询语句中 (使用 AND 连接，要求同时满足)
+        if keywords:
+            kw_query = " AND ".join([f'all:"{kw}"' for kw in keywords])
+            raw_query = f"({raw_query}) AND ({kw_query})"
+            
+        logger.info(f"生成的 ArXiv 底层查询语法: {raw_query}")
+        
+        # 将空格、引号等特殊字符转换为 URL 编码
+        encoded_query = urllib.parse.quote(raw_query)
         url = f"http://export.arxiv.org/api/query?search_query={encoded_query}&sortBy=submittedDate&sortOrder=descending&max_results={MAX_PAPERS}"
         
         try:
             feed = feedparser.parse(url)
+            if not feed.entries:
+                logger.info(f"  -> 未找到符合当前苛刻条件的最新论文，跳过。")
+                continue
+                
             for entry in feed.entries:
                 paper_info = {
                     "title": entry.title.replace('\n', ' '),
@@ -49,10 +86,12 @@ def get_target_conference_papers():
                     "paper_id": entry.id.split('/')[-1]
                 }
                 all_papers.append(paper_info)
-                logger.info(f"锁定目标: {paper_info['title']}")
+                logger.info(f"🎯 锁定目标: [{paper_info['comment']}] {paper_info['title']}")
         except Exception as e:
             logger.error(f"检索失败: {e}")
-        time.sleep(3)
+            
+        time.sleep(3) # 礼貌延时，防止被 ArXiv 封禁
+        
     return all_papers[:MAX_PAPERS]
 
 def download_and_extract_text(paper_info):
