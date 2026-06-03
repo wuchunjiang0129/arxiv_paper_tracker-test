@@ -41,8 +41,8 @@ CATEGORIES = ["cs.RO", "cs.CV", "cs.AI"]
 MAX_PAPERS = 10  # 设置为1以便快速测试
 
 # 配置OpenAI API用于DeepSeek
-openai.api_key = DEEPSEEK_API_KEY
-openai.api_base = "https://api.deepseek.com/v1"
+# openai.api_key = DEEPSEEK_API_KEY
+# openai.api_base = "https://api.deepseek.com/v1"
 
 # 如果不存在论文目录则创建
 PAPERS_DIR.mkdir(exist_ok=True)
@@ -170,59 +170,74 @@ def download_paper(paper, output_dir):
         return None
 
 def analyze_paper_with_deepseek(pdf_path, paper):
-    """使用DeepSeek API分析论文（使用OpenAI 0.28.0兼容格式）"""
+    """调用 DeepSeek API 分析论文（使用原生 requests，彻底告别 404）"""
+    author_names = [author.name for author in paper.authors]
+    
+    prompt = f"""
+    论文标题: {paper.title}
+    作者: {', '.join(author_names)}
+    类别: {', '.join(paper.categories)}
+    
+    你现在的身份是一位极其擅长“因材施教”的资深导师。请为一位科研初学者（小白）通俗易懂地拆解这篇研究论文。
+    
+    请严格按照以下模块和格式进行分析：
+    ### 1. 这篇论文在研究什么？（背景与大白话解释）
+    - **一句话大白话**：请用高阶白话文（不要用硬核术语），用一句话向外行解释这篇论文的核心目的。
+    - **行业痛点**：过去的方法有什么严重缺陷？或者这个领域现在面临什么难题？
+
+    ### 2. 核心贡献与创新点（它厉害在哪？）
+    - 简要列出 2-3 个最核心的创新。用通俗语言说清楚它提出了什么新视角。
+
+    ### 3. 研究方法与技术拆解（它是怎么做的？）
+    - **核心技术/模型**：它用了什么关键技术？请用简单的比喻或通俗语言解释这个技术的大致原理。
+
+    ### 4. 实验结果与结论（疗效如何？）
+    - 得出了什么关键结论？
+
+    ### 5. 对新手的启发（为什么值得我读？）
+    - 局限性是什么？有哪些方向是新手可以切入继续做研究的？
+    
+    【输出要求】：
+    1. 请使用中文回答。
+    2. 必须严格使用 Markdown 格式（使用 ### 作为小标题，- 作为列表符号，关键术语用 **加粗** 突出）。
+    """
+
+    # 官方绝对物理地址，绝不含糊
+    url = "https://api.deepseek.com/chat/completions"
+    
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
+    }
+    
+    payload = {
+        "model": "deepseek-chat", 
+        "messages": [
+            {"role": "system", "content": "你是一位专门总结和分析学术论文的研究助手。请使用中文回复。"},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.2
+    }
+
     try:
-        # 从Author对象中提取作者名
-        author_names = [author.name for author in paper.authors]
+        logger.info(f"正在直接连接 DeepSeek 服务器分析论文: {paper.title}")
         
-        prompt = f"""
-        论文标题: {paper.title}
-        作者: {', '.join(author_names)}
-        类别: {', '.join(paper.categories)}
-        发布时间: {paper.published}
-
-        你现在的身份是一位极其擅长“因材施教”的资深导师。请为一位科研初学者（小白）通俗易懂地拆解这篇研究论文。
-
-        请严格按照以下模块和格式进行分析：
+        # 抛弃第三方库，直接发 POST 请求
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
         
-        ### 1. 这篇论文在研究什么？（背景与大白话解释）
-        - **一句话大白话**：请用高阶白话文（不要用硬核术语），用一句话向外行解释这篇论文的核心目的（好比给外行讲故事）。
-        - **行业痛点**：过去的方法有什么严重缺陷？或者这个领域现在面临什么难题？
+        # HTTP 200 表示完全成功
+        if response.status_code == 200:
+            result = response.json()
+            return result['choices'][0]['message']['content']
+        else:
+            # 如果再失败，这里会把 DeepSeek 官方的具体拒接原因直接打印在你的 GitHub 日志里
+            error_detail = response.text
+            logger.error(f"DeepSeek 拒绝了请求！状态码: {response.status_code}, 详情: {error_detail}")
+            return f"### 论文分析失败\n服务器拒绝请求 (HTTP {response.status_code}): {error_detail}"
 
-        ### 2. 核心贡献与创新点（它厉害在哪？）
-        - 简要列出 2-3 个最核心的创新。不要直接翻译，用通俗语言说清楚它提出了什么新视角。
-
-        ### 3. 研究方法与技术拆解（它是怎么做的？）
-        - **核心技术/模型**：它用了什么关键技术？请用简单的比喻或通俗语言解释这个技术的大致原理。
-        - **数据集与工具**：具体用了哪些开源数据集、工具或硬件？
-
-        ### 4. 实验结果与结论（疗效如何？）
-        - 实验是怎么做的？结果对比前人提高了多少？得出了什么关键结论？
-
-        ### 5. 对新手的启发（为什么值得我读？）
-        - 局限性是什么？有哪些方向是新手可以切入继续做研究的（未来工作方向）？
-        
-        【输出要求】：
-        1. 请使用中文回答。
-        2. 必须严格使用 Markdown 格式（使用 `###` 作为小标题，`-` 作为列表符号，关键术语用 `**加粗**` 突出）。这样方便后续脚本渲染成精美的邮件。
-        3. 遇到极其晦涩的学术名词，请在括号中加一句通俗解释。
-        """
-        
-        logger.info(f"正在分析论文: {paper.title}")
-        response = openai.ChatCompletion.create(
-            model="deepseek-v4-pro",
-            messages=[
-                {"role": "system", "content": "你是一位专门总结和分析学术论文的研究助手。请使用中文回复。"},
-                {"role": "user", "content": prompt},
-            ]
-        )
-        
-        analysis = response.choices[0].message.content
-        logger.info(f"论文分析完成: {paper.title}")
-        return analysis
     except Exception as e:
-        logger.error(f"分析论文失败 {paper.title}: {str(e)}")
-        return f"**论文分析出错**: {str(e)}"
+        logger.error(f"网络通信发生断裂: {str(e)}")
+        return f"### 论文分析失败\n未知错误: {str(e)}"
 
 def write_to_conclusion(papers_analyses):
     """将分析结果写入conclusion.md"""
