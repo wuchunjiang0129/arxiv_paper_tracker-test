@@ -42,6 +42,9 @@ TARGET_QUERIES = [
 ]
 MAX_PAPERS = 5  # 每次精读篇数
 
+START_DATE = "20230101"  # 从 2023年1月1日 开始
+END_DATE = "20261231"    # 到 2026年年底 结束
+
 def get_target_conference_papers():
     """精确检索包含【多个顶会标签】及特定关键词的最新论文"""
     all_papers = []
@@ -64,12 +67,16 @@ def get_target_conference_papers():
         if keywords:
             kw_query = " AND ".join([f'all:"{kw}"' for kw in keywords])
             raw_query = f"({raw_query}) AND ({kw_query})"
-            
+        # 3. 🎯 核心新增：附加时间范围条件
+        date_query = f"submittedDate:[{START_DATE}000000 TO {END_DATE}235959]"
+        raw_query = f"({raw_query}) AND {date_query}"
+
+
         logger.info(f"生成的 ArXiv 底层查询语法: {raw_query}")
         
         # 将空格、引号等特殊字符转换为 URL 编码
         encoded_query = urllib.parse.quote(raw_query)
-        url = f"http://export.arxiv.org/api/query?search_query={encoded_query}&sortBy=submittedDate&sortOrder=descending&max_results={MAX_PAPERS}"
+        url = f"http://export.arxiv.org/api/query?search_query={encoded_query}&sortBy=relevance&sortOrder=descending&max_results={MAX_PAPERS}"
         
         try:
             feed = feedparser.parse(url)
