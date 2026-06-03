@@ -37,7 +37,7 @@ EMAIL_TO = [email.strip() for email in os.getenv("EMAIL_TO", "").split(",") if e
 
 PAPERS_DIR = Path("./papers")
 CONCLUSION_FILE = Path("./conclusion.md")
-CATEGORIES = ["cs.CV", "cs.AI","cs.RO",]
+CATEGORIES = ["cs.AI", "cs.AI","cs.RO","cs.LG"]  # 你可以根据需要添加更多类别cv、cs.LG、cs.RO等
 MAX_PAPERS = 10  # 设置为1以便快速测试
 
 # 配置OpenAI API用于DeepSeek
