@@ -34320,3 +34320,107 @@ MCOO-SLAM提出了一种多相机全景物体SLAM系统，旨在解决传统SLAM
 
 ---
 
+
+
+## ArXiv论文 - 最近5天 (截至 2026-06-03)
+
+### Exploring Easy Boosts for Lidar Semantic Scene Completion
+**作者**: Tetiana Martyniuk, Jonathan Seele, Alexandre Boulch, Gilles Puy, Renaud Marlet, Raoul de Charette
+**类别**: cs.CV, cs.RO
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03992v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### SimuScene: Simulation-Ready Compositional 3D Scene Reconstruction from a Single Image
+**作者**: Inhee Lee, Sangwon Baik, Sungjoo Kim, Hyeonwoo Kim, Hyunsoo Cha, Hanbyul Joo
+**类别**: cs.CV, cs.RO
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03994v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### Neuron Populations Exhibit Divergent Selectivity with Scale
+**作者**: Amil Dravid, Yasaman Bahri, Alexei A. Efros, Yossi Gandelsman
+**类别**: cs.LG, cs.CL, cs.CV
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03990v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### PixVOD: Pixel-Distributed Direct Visual Odometry and Depth Estimation
+**作者**: Shinjeong Kim, Ignacio Alzugaray, Callum Rhodes, Paul H. J. Kelly, Andrew J. Davison
+**类别**: cs.CV
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03989v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### Imaginative Perception Tokens Enhance Spatial Reasoning in Multimodal Language Models
+**作者**: Mahtab Bigverdi, Lindsey Li, Weikai Huang, Yiming Liu, Jaemin Cho, Jieyu Zhang, Tuhin Kundu, Chris Dangjoo Kim, Zelun Luo, Linda Shapiro, Ranjay Krishna
+**类别**: cs.AI
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03988v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### NewtPhys: Do Foundation Models Understand Newtonian Physics?
+**作者**: Sebastian Cavada, Soumava Paul, Tuan-Hung Vu, Andrei Bursuc, Raoul de Charette
+**类别**: cs.CV
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03986v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### Humanoid-GPT: Scaling Data and Structure for Zero-Shot Motion Tracking
+**作者**: Zekun Qi, Xuchuan Chen, Dairu Liu, Chenghuai Lin, Yunrui Lian, Sikai Liang, Zhikai Zhang, Yu Guan, Jilong Wang, Wenyao Zhang, Xinqiang Yu, He Wang, Li Yi
+**类别**: cs.RO, cs.AI, cs.CV
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03985v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### Language Models Need Sleep: Learning to Self-Modify and Consolidate Memories
+**作者**: Ali Behrouz, Farnoosh Hashemi, Vahab Mirrokni
+**类别**: cs.LG, cs.AI
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03979v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### Formalizing the Binding Problem
+**作者**: Lianghuan Huang, Yihao Li, Saeed Salehi, Yingshan Chang, Ansh Soni, Konrad P. Kording
+**类别**: cs.CV, cs.AI, cs.LG, q-bio.NC
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03976v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
+### AAD-1: Asymmetric Adversarial Distillation for One-Step Autoregressive Video Generation
+**作者**: Haobo Li, Yanhong Zeng, Yunhong Lu, Jiapeng Zhu, Hao Ouyang, Qiuyu Wang, Ka Leong Cheng, Yujun Shen, Zhipeng Zhang
+**类别**: cs.CV
+**发布日期**: 2026-06-02
+**链接**: http://arxiv.org/abs/2606.03972v1
+
+**论文分析出错**: HTTP code 404 from API ()
+
+---
+
