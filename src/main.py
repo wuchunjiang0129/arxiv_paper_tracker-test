@@ -42,7 +42,7 @@ MAX_PAPERS = 10  # 设置为1以便快速测试
 
 # 配置OpenAI API用于DeepSeek
 openai.api_key = DEEPSEEK_API_KEY
-openai.api_base = "https://api.deepseek.com/v4"
+openai.api_base = "https://api.deepseek.com/v1"
 
 # 如果不存在论文目录则创建
 PAPERS_DIR.mkdir(exist_ok=True)
