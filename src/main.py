@@ -32,12 +32,12 @@ TARGET_QUERIES = [
     {
         "cat": "cs.CV",                               # 领域：计算机视觉
         "confs": ["CVPR", "ICCV", "ECCV"],            # 视觉三大顶会打包
-        "keywords": ["visual navigation", "(UAV OR drone OR quadrotor)"]      # 必须同时包含：视觉导航 AND 无人机
+        "keywords": ["UAV", "drone", "navigation", "autonomous navigation"]     # 必须同时包含：视觉导航 AND 无人机
     },
     {
         "cat": "cs.RO",                               # 领域：机器人学
         "confs": ["ICRA", "IROS", "RSS"],             # 机器人三大顶会打包
-        "keywords": ["visual navigation", "(UAV OR drone OR quadrotor)"]    # 必须同时包含：视觉导航 AND 无人机(drone)
+        "keywords": ["UAV", "drone", "navigation", "autonomous navigation"]    # 必须同时包含：视觉导航 AND 无人机(drone)
     }
 ]
 MAX_PAPERS = 5  # 每次精读篇数
@@ -65,7 +65,7 @@ def get_target_conference_papers():
         
         # 2. 附加条件：如果有关键词，拼接到查询语句中 (使用 AND 连接，要求同时满足)
         if keywords:
-            kw_query = " AND ".join([f'all:"{kw}"' for kw in keywords])
+            kw_query = " OR ".join([f'all:"{kw}"' for kw in keywords])
             raw_query = f"({raw_query}) AND ({kw_query})"
         # 3. 🎯 核心新增：附加时间范围条件
         date_query = f"submittedDate:[{START_DATE}000000 TO {END_DATE}235959]"

@@ -11,7 +11,10 @@ jobs:
     timeout-minutes: 90
     
     steps:
+    # 🌟 关键修改 1：明确告诉 GitHub，强制拉取 deep-dive 分支的代码，不要拉默认的 main
     - uses: actions/checkout@v3
+      with:
+        ref: deep-dive
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,3 +38,16 @@ jobs:
         EMAIL_TO: ${{ secrets.EMAIL_TO }}
       run: |
         python src/main.py
+        
+    # 🌟 关键修改 2：把生成的文件推送到 deep-dive 分支
+    - name: Commit and push changes
+      run: |
+        # 建议使用 GitHub 官方机器人身份提交，避免权限或冲突问题
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "docs: auto update deep dive report" || echo "No changes to commit"
+        
+        # 强制指定只和 origin 的 deep-dive 分支进行同步
+        git pull origin deep-dive --rebase
+        git push origin deep-dive
