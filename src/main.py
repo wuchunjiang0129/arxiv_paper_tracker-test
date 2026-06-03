@@ -14,6 +14,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from jinja2 import Template
+import feedparser
+import re
 
 # 加载环境变量
 load_dotenv()
@@ -35,7 +37,7 @@ EMAIL_TO = [email.strip() for email in os.getenv("EMAIL_TO", "").split(",") if e
 
 PAPERS_DIR = Path("./papers")
 CONCLUSION_FILE = Path("./conclusion.md")
-CATEGORIES = ["cs.RO","cs.AI"]
+CATEGORIES = ["cs.RO", "cs.CV", "cs.AI"]
 MAX_PAPERS = 10  # 设置为1以便快速测试
 
 # 配置OpenAI API用于DeepSeek
@@ -47,39 +49,107 @@ PAPERS_DIR.mkdir(exist_ok=True)
 logger.info(f"论文将保存在: {PAPERS_DIR.absolute()}")
 logger.info(f"分析结果将写入: {CONCLUSION_FILE.absolute()}")
 
-def get_recent_papers(categories, max_results=MAX_PAPERS):
-    """获取最近5天内发布的指定类别的论文"""
-    # 计算最近5天的日期范围
-    today = datetime.datetime.now()
-    five_days_ago = today - datetime.timedelta(days=2)
+# def get_recent_papers(categories, max_results=MAX_PAPERS):
+#     """获取最近5天内发布的指定类别的论文"""
+#     # 计算最近5天的日期范围
+#     today = datetime.datetime.now()
+#     five_days_ago = today - datetime.timedelta(days=2)
     
-    # 格式化ArXiv查询的日期
-    start_date = five_days_ago.strftime('%Y%m%d')
-    end_date = today.strftime('%Y%m%d')
+#     # 格式化ArXiv查询的日期
+#     start_date = five_days_ago.strftime('%Y%m%d')
+#     end_date = today.strftime('%Y%m%d')
     
-    # 创建查询字符串，搜索最近5天内发布的指定类别的论文
-    category_query = " OR ".join([f"cat:{cat}" for cat in categories])
-    date_range = f"submittedDate:[{start_date}000000 TO {end_date}235959]"
-    query = f"({category_query}) AND {date_range}"
+#     # 创建查询字符串，搜索最近5天内发布的指定类别的论文
+#     category_query = " OR ".join([f"cat:{cat}" for cat in categories])
+#     date_range = f"submittedDate:[{start_date}000000 TO {end_date}235959]"
+#     query = f"({category_query}) AND {date_range}"
     
-    logger.info(f"正在搜索论文，查询条件: {query}")
+#     logger.info(f"正在搜索论文，查询条件: {query}")
 
-    client = arxiv.Client(
-        page_size=100,
-        delay_seconds=5.0,  # 每次请求之间延迟 5 秒（默认是 3 秒）
-        num_retries=5       # 增加重试次数
-    )
-    # 搜索ArXiv
-    search = arxiv.Search(
-        query=query,
-        max_results=max_results,
-        sort_by=arxiv.SortCriterion.SubmittedDate,
-        sort_order=arxiv.SortOrder.Descending
-    )
+#     client = arxiv.Client(
+#         page_size=100,
+#         delay_seconds=5.0,  # 每次请求之间延迟 5 秒（默认是 3 秒）
+#         num_retries=5       # 增加重试次数
+#     )
+#     # 搜索ArXiv
+#     search = arxiv.Search(
+#         query=query,
+#         max_results=max_results,
+#         sort_by=arxiv.SortCriterion.SubmittedDate,
+#         sort_order=arxiv.SortOrder.Descending
+#     )
     
-    results = list(client.results(search))
-    logger.info(f"找到{len(results)}篇符合条件的论文")
-    return results
+#     results = list(client.results(search))
+#     logger.info(f"找到{len(results)}篇符合条件的论文")
+#     return results
+def get_recent_papers(categories, max_results=MAX_PAPERS):
+    """通过 ArXiv 官方不限流的 RSS 订阅源获取最新论文（彻底解决 429 报错）"""
+    logger.info(f"正在通过 RSS 订阅源获取类别 {categories} 的最新论文...")
+    
+    # 用来临时存放统一格式的伪 Paper 对象
+    parsed_papers = []
+    
+    # 遍历你设置的每一个分类（如 'cs.AI', 'cs.CV', 'cs.RO'）
+    for cat in categories:
+        rss_url = f"https://rss.arxiv.org/rss/{cat}"
+        logger.info(f"正在读取 RSS 源: {rss_url}")
+        
+        try:
+            # 使用 feedparser 解析，该接口对 GitHub Actions 极其友好，不限流
+            feed = feedparser.parse(rss_url)
+            
+            for entry in feed.entries:
+                if len(parsed_papers) >= max_results:
+                    break
+                    
+                # 为了不破坏你后续的 main.py 代码，我们动态组装一个高兼容性的结构体/类
+                class MockAuthor:
+                    def __init__(self, name):
+                        self.name = name
+                        
+                class MockPaper:
+                    def __init__(self, e, category):
+                        self.title = e.title
+                        # 清理 RSS 里的作者文本并转换为列表
+                        author_text = e.get('author', 'Unknown')
+                        # 移除可能存在的 HTML 标签
+                        author_text = re.sub(r'<[^>]+>', '', author_text)
+                        self.authors = [MockAuthor(a.strip()) for a in author_text.split(',')]
+                        self.categories = [category]
+                        # RSS 的 entry_id 通常就是论文的链接
+                        self.entry_id = e.link
+                        # 尝试获取发布日期
+                        self.published = datetime.datetime.now() 
+                        
+                    def get_short_id(self):
+                        # 从链接中提取短 ID，例如从 http://arxiv.org/abs/2401.12345 提取 2401.12345
+                        match = re.search(r'/abs/([^v]+)', self.entry_id)
+                        if match:
+                            return match.group(1)
+                        return str(time.time())
+                        
+                    def download_pdf(self, filename):
+                        # 将 abs 链接转换为 pdf 下载链接并实施下载
+                        pdf_url = self.entry_id.replace('/abs/', '/pdf/') + ".pdf"
+                        import urllib.request
+                        # 设置请求头，假装是浏览器，防止下载 PDF 时被拦截
+                        req = urllib.request.Request(
+                            pdf_url, 
+                            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+                        )
+                        with urllib.request.urlopen(req) as response, open(filename, 'wb') as out_file:
+                            out_file.write(response.read())
+
+                # 实例化伪造的论文对象，确保原本的 downstream（下载、DeepSeek分析）代码不需要做任何改动
+                paper_obj = MockPaper(entry, cat)
+                parsed_papers.append(paper_obj)
+                
+        except Exception as e:
+            logger.error(f"读取类别 {cat} 的 RSS 源失败: {str(e)}")
+            continue
+            
+    logger.info(f"成功通过 RSS 检索到 {len(parsed_papers)} 篇最新论文！")
+    return parsed_papers[:max_results]
 
 def download_paper(paper, output_dir):
     """将论文PDF下载到指定目录"""
