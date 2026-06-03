@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 from jinja2 import Template
 import feedparser
 import re
+import requests
+import json
 
 # 加载环境变量
 load_dotenv()
